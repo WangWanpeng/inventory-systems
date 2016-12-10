@@ -1,0 +1,88 @@
+\documentclass{article}
+
+\usepackage{mathtools,amssymb}
+\usepackage{fouriernc}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\1}[1]{\mathbb{1}_{#1}}
+\renewcommand{\P}{\mathbb{P}}
+
+\title{Useful notation for the Q,r model}
+
+\begin{document}
+\maketitle
+
+Here we summary some notation and functions used by Hadley and Whitin
+(Section 4.7 for the analysis and Section 4.10 for a numerical
+example) and Federgruen and Zheng (OR, 1991), in their descriptions of
+the $(Q,r)$-inventory control rule. We refer to these places for
+further background.
+
+The long-run average cost is given by
+\begin{equation*}
+  C(r, Q) = K \frac{\lambda}{Q} + \frac1Q \sum_{y=r+1}^{r+Q} G(y),
+\end{equation*}
+where
+\begin{equation*}
+  G(y) = \E f(y-X)
+\end{equation*}
+and $f(y)$ is a cost function when the inventory level is $y$ and $X$
+is the leadtime demand. To capture the average inventory cost, take
+\begin{equation*}
+   f(y) = h [y]^+,
+\end{equation*}
+for the backorder cost per unit per unit time, let
+\begin{equation*}
+   f(y) = b [-y]^+.
+\end{equation*}
+The loss fraction is given by
+\begin{equation*}
+   f(y) = \1{y\leq 0}.
+\end{equation*}
+To see this last equation, note that $\P(X\geq y)$ is the
+fraction of demand lost, by PASTA. Clearly, for this $f$,
+\begin{equation*}
+\P(X\geq y) = \P(y-X \leq 0) = \E \1{y-X\leq 0} = \E f(y-X) = G(y).
+\end{equation*}
+Thus,  the cost per backorder becomes
+\begin{equation*}
+   f(y) = \lambda \pi 1\{y\leq 0\},
+\end{equation*}
+where $\pi$ is the cost per backordered demand and $\lambda$ the
+arrival rate. The total cost follows by summing all these costs to
+\begin{equation*}
+   f(y) = h [y]^+ + b[-y]^+ + \lambda \pi 1\{y\leq 0\}.
+\end{equation*}
+
+
+To compute the cost associated with each of the separate components,
+set $K=0$ in $C(r,Q)$ above, since, for instance,the average holding
+costs should not include ordering costs.
+
+
+
+Finally, we relate the notation of Federgruen and Zheng to the
+notation of Hadley and Whitin.
+
+   \begin{align*}
+     \lambda &= \text{Arrival rate of demand}, \\
+     L &= \tau = \text{The replenishment lead time}, \\
+     X &= \text{The stochastic demand during the replenishment lead time}, \\
+     F &= \text{The distribution of } X,\\
+     Q &= \text{The ordering quantity}, \\
+     r &= \text{Reorder level}, \\
+     A & = K = \text{Ordering cost},\\
+     \pi & = \text{Stockout cost per unit},\\
+     \hat \pi & = \text{Stockout cost per unit per unit time},\\
+     C &= \text{Item Cost}. \\
+     I &= \text{Inventory carring charge }. \\
+     h &= C*I = \text{Inventory cost per unit per unit time}. \\
+   \end{align*}
+
+\end{document}
+
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

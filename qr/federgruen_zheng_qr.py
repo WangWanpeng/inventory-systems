@@ -2,6 +2,14 @@
 Zheng, OR, 1991, to compute the optimal (Q,r)-policy for
 single-item periodic review systems.
 
+
+To find the minimum of G below we first find an estimate for r. We
+assume that the cost of backlogging is higher than the cost of
+inventory. Hence, the minimum of G must be to the right of 0. Next, we
+search for the optimal values of r and Q. Since we use memoization,
+the computations of c(r,Q) are replaced by look-ups.  Hence, there is
+no overlap in the computations.
+
 """
 
 from functools import lru_cache
@@ -9,6 +17,7 @@ import numpy as np
 from scipy.stats import poisson
 
 import unittest
+
 
 class Federgruen_Zheng_Qr:
     def __init__(self, X, f, K, labda):
