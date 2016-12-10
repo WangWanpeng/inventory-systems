@@ -157,21 +157,31 @@ class Test(unittest.TestCase):
         fz = Federgruen_Zheng_Qr(X, f, K, labda)
         self.assertAlmostEqual(fz.c(r=r, Q=Q), 32.9419610, places=6)
 
+    def test_find_optimal_qr(self):
+        labda = 400  # arrival rate
+        tau = 0.25   # lead time
+        A = K = 0.16 # ordering cost
+        C = 10.0     # buying cost per item
+        I = 0.2      # interest per unit time
+        pi = 0.1     # stockout cost per item
+        pihat = 0.3  # backlog cost per item per unit time
+
+        h = I * C  # holding cost
+        b = pihat  # backlogging cost per item per unit time
+
+        X = poisson(labda*tau)  # demand during lead time
+
+        holding_cost = lambda j: h*np.maximum(j, 0)
+        backlogging_cost = lambda j: b*np.maximum(-j, 0)
+        stockout_cost = lambda j: pi*labda*(j <= 0)
+
+        f = lambda j: holding_cost(j)+backlogging_cost(j)+\
+            stockout_cost(j)
+        r, Q = 96, 19
+        fz = Federgruen_Zheng_Qr(X, f, K, labda)
+        r, Q = fz.optimize()
+        self.assertEqual((r, Q), (96, 18))
+
 if __name__ == '__main__':
     unittest.main()
 
-quit()
-
-if __name__ == "__main__":
-    h = G.I * G.C
-    b = G.pihat
-    f = lambda j: h*np.maximum(j,0) + b*np.maximum(-j,0) + G.pi*G.labda*(j<=0)
-    qrfz = QrFZ(G.X,
-                f= f, 
-                K=G.A,
-                labda=G.labda)
-    
-    r, Q = qrfz.optimize()
-    r
-    Q
-    qrfz.c(r,Q)
