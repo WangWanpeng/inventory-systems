@@ -1,6 +1,8 @@
 """We implement the formulas of Hadley and Whitin, Section 4.7, to
 compute the various cost components for a given single-item inventory
-system under a (Q,r) policy. We assume the Q and r as given.
+system under a (Q,r) policy. We assume the Q and r  given.
+
+Note: G contains a set of global parameters.
 
 """
 
@@ -56,6 +58,8 @@ class Qr_HW:
 
 
 class HW_data:
+    # We use the values of the example of Section 4.10 of Hadley and
+    # Whitin
     def __init__(self):
         self.labda = 400
         self.tau = 0.25
@@ -70,6 +74,11 @@ class HW_data:
 
 
 if __name__ == "__main__":
+    # And now we check the values of the example of Section 4.10 of
+    # Hadley and Whitin. Our results are not completely the same due
+    # to a tiny error in one of their formulas. See the accompyning
+    # tex file for the correct result.
+
     G = HW_data()
     r, Q = 96, 19
     qr = Qr_HW()
