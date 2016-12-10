@@ -1,7 +1,7 @@
-"""This code is an implementation of the algorithm of Federgruen and
-Zheng, OR, 1991, to compute the optimal :math:`(s,S)`-policy for
+"""This code is an implementation of the algorithm of Zheng and
+Federgruen Zheng, OR, 1991, to compute the optimal (s,S)-policy for
 single-item periodic review systems.  Gerlach van der Heijde provided
-the implemented the the function ``findOptimalPolicy()``.
+the implemented  the method findOptimalPolicy().
 
 """
 
