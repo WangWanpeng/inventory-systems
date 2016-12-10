@@ -1,0 +1,261 @@
+.. _qrmodelsoptimal:
+
+
+The :math:`(Q,r)` Inventory Model, Finding the Optimal Policy
+===================================================================================
+
+
+Here we show how to find optimal values for :math:`Q` and :math:`r`
+for the :math:`(Q,r)` inventory model by the method discussed in
+:cite:`federgruen91:_q`. We only implement the cost function, and
+refer to :cite:`federgruen91:_q` for the details.
+
+At the end we compare the results to the example of :ref:`Hadley and
+Whitin <qrmodels>`.
+
+
+Below we compute  various cost components by choosing  judicious cost
+functions. Observe that the long-run average cost is given by
+
+.. math::
+
+   C(r, Q) = K \frac{\lambda}{Q} + \frac1Q \sum_{y=r+1}^{r+Q} G(y),
+
+where
+
+.. math::
+
+   G(y) = \E f(y-X)
+
+and :math:`f(y)` is a cost function when the inventory level is
+:math:`y` and :math:`X` is the leadtime demand. To capture the average
+inventory cost, take
+
+.. math::
+
+   f(y) = h [y]^+,
+
+for the backorder cost per unit per unit time, let
+
+.. math::
+
+   f(y) = b [-y]^+.
+
+The loss fraction is given by
+
+.. math::
+
+   f(y) = 1\{y\leq 0\}.
+
+To see this, note that :math:`\P(D\geq y)` is the fraction of demand
+lost, by PASTA. Clearly, for this :math:`f`,
+
+.. math::
+   
+   \P(D\geq y) = \P(y-D \leq 0) = \E 1\{y-X\leq 0\} = \E f(y-X) = G(y).
+
+Thus,  the cost per backorder becomes
+
+.. math::
+
+   f(y) = \lambda \pi 1\{y\leq 0\},
+
+where :math:`\pi` is the cost per backordered demand.
+
+The total cost follows by summing all these costs to
+
+.. math::
+
+   f(y) = h [y]^+ + b[-y]^+ + \lambda \pi 1\{y\leq 0\}.
+
+To compute each of the separate components, set :math:`K=0` in
+:math:`C(r,Q)` above, since, for instance,the average holding costs
+should not include ordering costs.
+
+
+
+The Algorithm
+^^^^^^^^^^^^^^^^^^^^^^^
+
+This class contains the formulas as used in the paper.
+
+
+<<complete=False>>=
+
+from functools import lru_cache
+import numpy as np
+from scipy.stats import poisson
+
+class QrFZ:
+    def __init__(self, X, f, K, labda):
+        self.f  = f
+        self.X = X
+        self.K = K
+        self.labda = labda
+
+    @lru_cache(maxsize=None)
+    def G(self,y):
+        return self.X.expect(lambda j: self.f(y-j), 0, np.inf)
+
+    @lru_cache(maxsize=None)
+    def c(self,r,Q): # long-run average cost
+        S = sum(self.G(y) for y in range(r+1, r+Q+1))
+        S += self.K*self.labda
+        return S/Q
+
+    def optimize(self):
+        # obtain first estimate for r
+        y = 0
+        while self.G(y) > self.G(y+1):
+            y += 1
+
+        r = y-1
+        Q = 1
+
+        # now optimize over r and Q
+        while True:
+            if self.c(r-1,Q) < self.c(r,Q):
+                r -= 1
+            elif self.c(r,Q+1) < self.c(r,Q):
+                Q += 1
+            elif self.c(r-1,Q+1) < self.c(r,Q):
+                Q += 1
+                r -= 1
+            else:
+                break
+
+        return r, Q
+@
+
+To find the minimum of :math:`G` we first find an estimate for
+:math:`r`. We assume that the cost of backlogging is higher than the
+cost of inventory. Hence, the minimum of :math:`G` must be to the
+right of 0. Next, we search for the optimal values of :math:`r` and
+:math:`Q`. Since we use memoization, the computations of
+:math:`c(r,Q)` are replaced by look-ups.  Hence, there is no overlap
+in the computations.
+
+
+Numerical Tests
+^^^^^^^^^^^^^^^^^^^^^^^
+
+We map the notation of Federgruen and Zheng to the notation of Hadley
+and Whitin. Next, we compare the costs computed with this
+implementation and that in :ref:`Hadley and Whitin <qrmodels>`.
+
+
+.. math::
+
+   \begin{split}
+       L &= \tau = \text{The replenishment lead time}, \\
+       X &= \text{The stochastic demand during the replenishment lead time}, \\
+       F &= \text{The distribution of } X,\\
+       Q &= \text{The ordering quantity}, \\
+       r &= \text{Reorder level}, \\
+       K & = A = \text{Ordering cost},\\
+       h &= \text{Inventory cost function}. \\
+   \end{split}
+
+
+Load the data of the example of :ref:`Hadley and Whitin <qrmodels>`.
+
+<<main=True>>=
+import qrHadleyWhitin
+from qrHadleyWhitin import Qr_HW, HW_data
+
+G = HW_data()
+qrHadleyWhitin.G = G # set the data for HW
+qrhw = Qr_HW()
+
+r = 96
+Q = 19
+@
+
+
+
+
+The average holding cost is 
+
+<<main=True, term=True>>=
+
+h = G.I * G.C
+qrfz = QrFZ(G.X,
+            f= lambda j: h*np.maximum(j,0),
+            K=0,
+            labda=G.labda)
+
+qrfz.c(r=r, Q=Q)       # cost for model of FZ
+qrhw.holdingCost(r, Q) # cost according to model of HW
+@
+
+Average backorder cost (per unit per unit time).  NOte that to force
+the new computation of all involved functions, we need to clear the
+caches used in the memoization (i.e., the `lru_cache`.)
+
+<<main=True, term=True>>=
+qrfz.G.cache_clear()
+qrfz.c.cache_clear()
+
+b = G.pihat
+qrfz.f = lambda j: b*np.maximum(-j,0)  
+qrfz.c(r, Q)
+qrhw.backloggingCost(r, Q)
+@
+
+Stockout probablity
+<<main=True, term=True>>=
+qrfz.G.cache_clear()
+qrfz.c.cache_clear()
+
+qrfz.f = lambda j: (j<=0)
+qrfz.c(r, Q)
+qrhw.Pout(r, Q)
+@
+
+Stockout cost
+<<main=True, term=True>>=
+qrfz.G.cache_clear()
+qrfz.c.cache_clear()
+
+qrfz.f = lambda j: G.labda*G.pi*(j<=0)
+qrfz.c(r, Q)
+qrhw.stockoutCost(r, Q)
+@
+
+Total cost
+<<main=True, term=True, wrap=False>>=
+qrfz.G.cache_clear()
+qrfz.c.cache_clear()
+
+h = G.I * G.C
+b = G.pihat
+qrfz.f = lambda j: h*np.maximum(j,0) + b*np.maximum(-j,0) + G.pi*G.labda*(j<=0)
+qrfz.K = G.A
+qrfz.c(r, Q)
+qrhw.totalCost(r, Q)
+@
+
+We see that all results agree.
+
+Finally, we can optimize for :math:`Q` and :math:`r`.
+
+<<main=True, term=True, wrap=False>>=
+h = G.I * G.C
+b = G.pihat
+f = lambda j: h*np.maximum(j,0) + b*np.maximum(-j,0) + G.pi*G.labda*(j<=0)
+qrfz = QrFZ(G.X,
+            f= f, 
+            K=G.A,
+            labda=G.labda)
+
+r, Q = qrfz.optimize()
+r
+Q
+qrfz.c(r,Q)
+@ 
+
+
+
+
+    
+
