@@ -11,9 +11,9 @@
 \begin{document}
 \maketitle
 
-Here we summary some notation and functions used by Hadley and Whitin
-(Section 4.7 for the analysis and Section 4.10 for a numerical
-example) and Federgruen and Zheng (OR, 1991), in their descriptions of
+Here we summarize some notation and functions used by Hadley and
+Whitin (Section 4.7 for the analysis and Section 4.10 for a numerical
+example) and Federgruen and Zheng (OR, 1991) in their descriptions of
 the $(Q,r)$-inventory control rule. We refer to these places for
 further background.
 
@@ -63,7 +63,7 @@ costs should not include ordering costs.
 We next relate the notation of Federgruen and Zheng to the
 notation of Hadley and Whitin.
 
-   \begin{align*}
+\begin{align*}
      \lambda &= \text{Arrival rate of demand}, \\
      L &= \tau = \text{The replenishment lead time}, \\
      X &= \text{The stochastic demand during the replenishment lead time}, \\
@@ -76,10 +76,11 @@ notation of Hadley and Whitin.
      C &= \text{Item Cost}. \\
      I &= \text{Inventory carring charge }. \\
      h &= C*I = \text{Inventory cost per unit per unit time}. \\
-   \end{align*}
+\end{align*}
 
 
-Finally we have some remarks on two formulae of Hadley and Whitin.
+Finally we have some remarks on two formulae of Hadley and Whitin. (In
+our numerical work we got other values than theirs\ldots)
 \begin{enumerate}
 \item The formula Eq. 4.93 in Hadley and Whitin for the average
   holding cost uses $Q^*$ but it should be $(Q^*+1)/2$. 
