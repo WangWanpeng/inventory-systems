@@ -1,0 +1,162 @@
+.. _qrmodelsFP:
+
+cycle service level
+fraction demand satisfied under partial acceptance, compound Poisson
+fraction of customers completely served, under complete rejection
+ready rate P(I>0)
+
+
+The :math:`(Q,r)` Inventory Model, Factory Physics Formulae
+===================================================================================
+
+Here we show an implementation of the formulae of
+:ref:`addendumChapter2formulae` for the :math:`Q,r` model.
+
+
+<<wrap=False>>=
+import numpy as np
+import scipy.stats as stats
+import matplotlib.pylab as plt
+import seaborn; seaborn.set()
+
+class  Qr_FP(object):
+    def __init__(self, l, h, b, k, X, A, D):
+        self.X = X # demand distribution during lead time
+        self.D = D # average yearly demand
+        self.l = l # leadtime
+        self.h = h # holding cost
+        self.b = b # backorder cost
+        self.A = A # setup cost
+        self.k = k # stockout cost
+
+        self.theta = self.X.mean()
+        self.G = self.X.cdf
+
+    def Qstar(self): # approximation 
+        return np.sqrt(2*self.A*self.D/self.h)
+
+    def F(self,Q,r):
+        return self.D/float(Q)
+
+    def S(self,Q,r): # Eq. 2.34
+        return sum(self.G(x) for x in range(r, r+Q))/Q
+
+    def Pout(self, Q, r):
+        return 1 - self.S(Q,r)
+
+    def base(self, r): # Eq 2.22
+        return self.X.expect(lambda x: x-r-1, r+1, np.inf)
+
+    def B(self,Q,r): # 2.38
+        return sum( self.base(x) for x in range(r, r+Q))/Q
+
+    def I(self,Q,r):  # 2.41
+        return (Q+1.)/2. + r - self.theta + self.B(Q,r)
+
+    def orderingCost(self, Q,r): 
+        return self.A * self.F(Q,r)
+
+    def holdingCost(self, Q,r):
+        return self.h*self.I(Q,r)
+
+    def backloggingCost(self,Q,r):  # 2.43
+        return self.b*self.B(Q,r) 
+
+    def stockoutCost(self,Q,r): # 2.50
+        return self.k*self.D*(1.- self.S(Q,r))
+
+    def totalCost(self, Q, r): 
+        return self.orderingCost(Q,r) + \
+               self.holdingCost(Q, r) + \
+               self.stockoutCost(Q,r) +\
+               self.backloggingCost(Q, r)
+
+@
+
+
+An Example of Factory Physics
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We compute the results for the example of Jack, the maintenance
+manager, Section 2.4.3 of the Factory Physics.
+
+
+<<main=True>>=
+D = 14
+l = 45/365.
+A = 15.
+h = 30.
+b = 100.
+k =  40.
+X = stats.poisson(D*l)
+
+Q = 4
+r = 3
+
+qr = Qr_FP(l = l, h = h, b = b, k = k, X=X, A = A, D = D)
+
+print("stockout probability: ", qr.Pout(Q,r))
+print("Average on hand : ", qr.I(Q,r))
+print("Average backorders: ", qr.B(Q,r))
+@
+
+
+An example of Hadley and Whitin
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This is an example of example of Section 4.10 of Hadley and Whitin,
+:cite:`hadley63:_analy`.
+
+<<main=True>>=
+labda = 400
+tau = 0.25 # lead time
+mu = labda*tau
+X = stats.poisson(mu)
+A = 0.16
+C = 10.0
+I = 0.2
+pi = 0.1
+pihat = 0.3
+
+
+qr = Qr_FP(l = tau, h = I*C, b = pihat, k = pi, X=X, A = A, D = labda)
+Q, r = 19, 96
+print("stockout probability: ", qr.Pout(Q,r))
+print("ordering cost: ", qr.orderingCost(Q,r))
+print("holding cost: ", qr.holdingCost(Q,r))
+print("stockout cost: ", qr.stockoutCost(Q,r))
+print("backlogging cost: ", qr.backloggingCost(Q,r))
+print("total cost: ", qr.totalCost(Q, r))
+@
+    
+
+
+An Efficient Frontier
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Just as for the basestock model, see :ref:`basestock`, we compute
+efficient frontiers for various values of the order size :math:`Q`
+
+<<main=True>>=
+N = 200
+step = 5
+
+for Q in [10, 20, 40, 80]:
+    I, S = [], []
+    for r in range(0, N, step):
+        S.append(qr.S(Q, r))
+        I.append(qr.I(Q,r))
+    plt.plot(S, I, label="Q = {}".format(Q))
+plt.xlabel("Service level")
+plt.ylabel("Average on-hand inventory")
+plt.xlim((-0.01, 1.01))
+plt.ylim(ymin=-1)
+plt.legend()
+plt.show()
+@
+
+
+It is interesting to see that the average on-hand inventory level,
+hence inventory cost, decreases as a function of :math:`Q`. However,
+below :math:`Q=10` the influence of :math:`Q` is rather small.  
+
