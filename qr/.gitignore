@@ -1,0 +1,5 @@
+*.aux
+*.log
+figures
+__pycache__
+auto
