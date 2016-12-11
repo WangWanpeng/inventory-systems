@@ -12,15 +12,13 @@ from scipy.stats import poisson
 import unittest
 
 
-class ZhengFedergruen(object):
-    def __init__(self, data):
-        self.__dict__.update(**data)
-        self.X = poisson(self.mu)
+class ZhengFedergruen:
+    def __init__(self, X, f, K, mu):
+        self.f = f
+        self.X = X
         self.p = self.X.pmf
-
-    def f(self, y):  # the one-period inventory cost
-        # see Page 655
-        return self.b*np.maximum(0, -y) + self.h*np.maximum(0, y)
+        self.K = K
+        self.mu = mu
 
     @lru_cache(maxsize=None)
     def G(self, y):
@@ -50,9 +48,7 @@ class ZhengFedergruen(object):
     def c(self, s, S):
         return self.k(s, S)/self.M(S-s)
 
-    def findOptimalPolicy(self):
-        # base stock level:
-        ystar = poisson.ppf(self.b/(self.b+self.h), self.mu).astype(int)
+    def findOptimalPolicy(self, ystar):
         s = ystar - 1  # upper bound for s
         S_0 = ystar + 0  # lower bound for S_0
         # calculate the optimal s for S fixed at its lower bound S0
@@ -73,31 +69,58 @@ class ZhengFedergruen(object):
         self.S_star = S0
         return s, S0
 
-
 class Test(unittest.TestCase):
 
     # values of Feng and Xiao, IEE Transactions 2000
 
     def test_1(self):
-        data = {'mu': 10., 'K': 64, 'h': 1., 'b': 9.}
-        s, S = 6, 40
-        zf = ZhengFedergruen(data)
-        zf.findOptimalPolicy()
+        mu = 10
+        K = 64
+        b = 9.
+        h = 1.
+        X = poisson(mu)
+
+        def f(y): return b*np.maximum(0, -y) + h*np.maximum(0, y)
+
+        ystar = X.ppf(b/(b+h)).astype(int)
+
+        zf = ZhengFedergruen(X, f, K, mu)
+        s, S = zf.findOptimalPolicy(ystar)
+        self.assertEqual((s, S), (6, 40))
         self.assertAlmostEqual(zf.c(s, S), 35.0215552, places=6)
 
     def test_2(self):
-        data = {'mu': 20., 'K': 64, 'h': 1., 'b': 9.}
-        s, S = 14, 62
-        zf = ZhengFedergruen(data)
-        zf.findOptimalPolicy()
+        mu = 20
+        K = 64
+        b = 9.
+        h = 1.
+        X = poisson(mu)
+
+        def f(y): return b*np.maximum(0, -y) + h*np.maximum(0, y)
+
+        ystar = X.ppf(b/(b+h)).astype(int)
+
+        zf = ZhengFedergruen(X, f, K, mu)
+        s, S = zf.findOptimalPolicy(ystar)
+        self.assertEqual((s, S), (14, 62))
         self.assertAlmostEqual(zf.c(s, S), 49.173036, places=6)
 
     def test_3(self):
-        data = {'mu': 64., 'K': 64, 'h': 1., 'b': 9.}
-        s, S = 55, 74
-        zf = ZhengFedergruen(data)
-        zf.findOptimalPolicy()
+        mu = 64
+        K = 64
+        b = 9.
+        h = 1.
+        X = poisson(mu)
+
+        def f(y): return b*np.maximum(0, -y) + h*np.maximum(0, y)
+
+        ystar = X.ppf(b/(b+h)).astype(int)
+
+        zf = ZhengFedergruen(X, f, K, mu)
+        s, S = zf.findOptimalPolicy(ystar)
+        self.assertEqual((s, S), (55, 74))
         self.assertAlmostEqual(zf.c(s, S), 78.402321, places=6)
+
 
 if __name__ == '__main__':
     unittest.main()

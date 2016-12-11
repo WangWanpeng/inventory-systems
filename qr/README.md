@@ -5,3 +5,4 @@ system under the Q,r ordering policy.
 - Hadley and Whitin
 - Factory Physics formulas (in a Pweave file)
 - qr_comments contains comments in latex (easier to edit)
+- qr_simulation speaks for itself
