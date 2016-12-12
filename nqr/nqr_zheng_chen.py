@@ -25,22 +25,6 @@ def find_argmin(f):
     return y
 
 
-def argmin(f, left, right):
-    # find argmin over a range
-    return min(range(left, right), key=lambda j: f(j))
-
-
-def find_left_right_roots(f, g):
-    # find roots of f(x)-g, assuming f is quasiconvex
-    left = find_argmin(f)
-    while f(left-1) < g:
-        left -= 1
-    right = find_argmin(f)
-    while f(right+1) < g:
-        right += 1
-    return left, right
-
-
 class Zheng_Chen:
     #zc = Zheng_Chen(D, D_L, f, K, mu)
     def __init__(self, D, D_L, f, K, mu):
