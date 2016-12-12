@@ -1,5 +1,6 @@
-"""
-This is the nqr model of Zheng and Chen, naval research
+"""This is the nqr model of Zheng and Chen, Naval Research Logistics
+1992. I use their symbols in the algorithm. 
+
 """
 
 from functools import lru_cache
@@ -46,9 +47,6 @@ class Zheng_Chen:
         S = self.K*sum(self.P(j) for j in range(1, Q+1))
         S += sum(self.G(y) for y in range(r+1, r+Q+1))
         return S/Q
-
-    def C(self, Q):
-        pass
 
     def optimize(self):
         y1 = find_argmin(self.G)
