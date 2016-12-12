@@ -26,7 +26,6 @@ def find_argmin(f):
 
 
 class Zheng_Chen:
-    #zc = Zheng_Chen(D, D_L, f, K, mu)
     def __init__(self, D, D_L, f, K, mu):
         self.D = D
         self.D_L = D_L
