@@ -1,6 +1,8 @@
 from functools import lru_cache
 
 
+# THIS FUNCTION DOES NOT RESTART, DUE TO THE MEMOIZATION
+
 @lru_cache(maxsize=None)
 def find_argmin(f):
     # Assuming that f is quasi convex, find the minimizer.
