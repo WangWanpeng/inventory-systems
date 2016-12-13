@@ -186,7 +186,6 @@ class Test(unittest.TestCase):
 
         f = lambda j: holding_cost(j)+backlogging_cost(j)+\
             stockout_cost(j)
-        r, Q = 96, 19
         fz = Federgruen_Zheng_Qr(X, f, K, labda)
         r, Q = fz.optimize()
         self.assertEqual((r, Q), (96, 18))

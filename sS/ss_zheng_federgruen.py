@@ -35,10 +35,7 @@ class ZhengFedergruen:
 
     @lru_cache(maxsize=None)
     def M(self, j):
-        if j == 0:
-            return 0.
-        else:
-            return self.M(j-1) + self.m(j-1)
+        return self.M(j-1) + self.m(j-1) if j > 0 else 0.
 
     def k(self, s, y):
         res = self.K
@@ -56,7 +53,7 @@ class ZhengFedergruen:
             s -= 1
         s_0 = s  # + 0 #optimal value of s for S0
         c0 = self.c(s_0, S_0)  # costs for this starting value
-        S0 = S_0  # + 0  # S0 = S^0 of the paper
+        S0 = S_0   # S^0 of the paper
         S = S0+1
         while self.G(S) <= c0:
             if self.c(s, S) < c0:

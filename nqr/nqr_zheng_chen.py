@@ -3,27 +3,18 @@
 
 """
 
+import sys
+sys.path.append('../')
+
 from functools import lru_cache
+
 import numpy as np
 from scipy.stats import poisson
+from scipy.optimize import brentq
 
 import unittest
 
-
-@lru_cache(maxsize=None)
-def find_argmin(f):
-    # Assume that f is quasi convex
-    min_f = f(0)
-    y = 0
-    # search to the right
-    while f(y+1) <= min_f:
-        min_f = f(y+1)
-        y += 1
-    # search to the left
-    while f(y-1) <= min_f:
-        min_f = f(y-1)
-        y -= 1
-    return y
+from common_functions import find_argmin, find_left_right_roots, argmin
 
 
 class Zheng_Chen:
