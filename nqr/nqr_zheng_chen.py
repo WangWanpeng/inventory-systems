@@ -5,6 +5,9 @@
 
 import sys
 sys.path.append('../')
+sys.path.append('../qr/')
+#sys.path.insert(0, '../qr')
+
 
 from functools import lru_cache
 
@@ -15,6 +18,8 @@ from scipy.optimize import brentq
 import unittest
 
 from common_functions import find_argmin, find_left_right_roots, argmin
+from qr_federgruen_zheng import Federgruen_Zheng_Qr
+
 
 
 class Zheng_Chen:
@@ -122,6 +127,50 @@ class Test(unittest.TestCase):
             self.assertEqual((zc.r_star, zc.Q_star), (r, Q))
             self.assertAlmostEqual(zc.C_star, C, places=2)
 
+    def test_compare_against_qr(self):
+        h = 1
+        b = 9
+        K = 32
+
+        def holding_cost(j): return h*np.maximum(j, 0)
+
+        def backlogging_cost(j): return b*np.maximum(-j, 0)
+
+        def f(j): return holding_cost(j) + backlogging_cost(j)
+
+
+        cases = [
+            [0, 5, 3, 20, 18.14],
+            [0, 10, 7, 28, 25.64],
+            [0, 25, 21, 44, 40.55],
+            [0, 26, 32, 1, 41.31],
+            [1, 28, 52, 49, 45.05],
+            [1, 29, 67, 1, 45.72],
+            [1, 35, 80, 1, 47.04],
+            [3, 5, 19, 21, 20.56],
+            [3, 20, 78, 43, 41.04],
+            [5, 14, 84, 36, 36.44],
+            ]
+
+        for case in cases:
+            L, mu, r, Q, C = case
+            D = poisson(mu)
+            D_L = poisson(mu*(L+1))
+
+            nqr = Zheng_Chen(D, D_L, f, K, mu)
+            nqr.optimize()
+            self.assertEqual((nqr.r_star, nqr.Q_star), (r, Q))
+            self.assertAlmostEqual(nqr.C_star, C, places=2)
+
+            qr = Federgruen_Zheng_Qr(D_L, f, K, mu)
+            qr.r, qr.Q = qr.optimize()
+
+            self.assertLessEqual(qr.r, nqr.r_star)
+            self.assertLessEqual(nqr.Q_star, qr.Q)
+            self.assertLessEqual(nqr.C_star, qr.c(qr.r, qr.Q))
+
+            # print(qr.r, qr.Q, qr.c(qr.r, qr.Q), nqr.r_star, nqr.Q_star, nqr.C_star)
+
+
 if __name__ == '__main__':
     unittest.main()
-
